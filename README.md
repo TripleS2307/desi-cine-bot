@@ -6,5 +6,6 @@ A daily notification bot that tracks local movie schedules, filters for Indian c
 
 <h2>🔄 Process Workflow</h2>
 
-<div style="margin-top: 0px; margin-bottom: -35px;">
-![Process Workflow](assets/workflow.png)
+<div style="margin-top: 10px; margin-bottom: 20px;">
+    <img src="assets/workflow.png" alt="Process Workflow" width="100%">
+</div>
