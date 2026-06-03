@@ -1,0 +1,6 @@
+all_desi_films_*.json
+*.json
+
+# Python bytecode
+__pycache__/
+*.pyc
