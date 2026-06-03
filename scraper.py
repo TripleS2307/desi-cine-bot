@@ -117,21 +117,51 @@ def get_wikipedia_films(language, year):
 
     return movies_list
 
+def get_live_showtimes_for_theaters(tracked_theaters):
+    results = []
+    headers = {'User-Agent': 'Mozilla/5.0'}
+
+    for theater in tracked_theaters:
+        print(f"Extracting for: {theater['name']}...")
+        try:
+            response = requests.get(theater["url"], headers=headers, timeout=10)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # 1. Find all movie blocks. Based on your screenshot,
+            # each movie block has the class 'showtimeMovieBlock'
+            movie_blocks = soup.find_all('div', class_='showtimeMovieBlock')
+            
+            for block in movie_blocks:
+                # 2. Extract Title (often in a header tag within the block)
+                # You might need to adjust 'h2' or 'h3' based on the specific structure
+                title_tag = block.find('h2') or block.find('h3')
+                title = title_tag.get_text(strip=True) if title_tag else "Unknown Movie"
+                
+                # 3. Extract Showtimes. Look for all 'a' tags with class 'showtime-link'
+                times = [t.get_text(strip=True) for t in block.find_all('a', class_='showtime-link')]
+                
+                if times: # Only add if we actually found showtimes
+                    results.append({
+                        "theater": theater["name"],
+                        "movie": title,
+                        "showtimes": times
+                    })
+        except Exception as e:
+            print(f"Error at {theater['name']}: {e}")
+            
+    return results
+
+# --- MAIN EXECUTION ---
 if __name__ == "__main__":
-    languages = ["Tamil", "Hindi", "Telugu", "Malayalam", "Kannada", "Punjabi"]
-    year = 2026
-    all_movies = []
-
-    print(f"--- Starting Scraper Loop for {year} ---")
+    # Ensure you have a config.json in the same folder
+    with open("config.json", "r", encoding="utf-8") as f:
+        config = json.load(f)
     
-    for lang in languages:
-        print(f"Scraping {lang}...")
-        lang_data = get_wikipedia_films(language=lang, year=year)
-        print(f"-> Found {len(lang_data)} films.")
-        all_movies.extend(lang_data)
-
-    output_filename = f"all_desi_films_{year}.json"
-    with open(output_filename, "w", encoding="utf-8") as f:
-        json.dump(all_movies, f, indent=4, ensure_ascii=False)
-        
-    print(f"\nSuccess! Saved a total of {len(all_movies)} films to {output_filename}")
+    # 1. Gather all films
+    all_movies = []
+    for lang in ["Tamil", "Hindi", "Telugu", "Malayalam", "Kannada", "Punjabi"]:
+        all_movies.extend(get_wikipedia_films(lang, 2026))
+    
+    # 2. Match
+    final_matches = get_live_showtimes_for_theaters(config["tracked_theaters"])
+    print(final_matches)
