@@ -1,0 +1,28 @@
+{
+    "user_preferences": {
+        "languages": ["Tamil", "Hindi", "Telugu", "Malayalam", "Kannada", "Punjabi"],
+        "target_year": 2026
+    },
+    "tracked_theaters": [
+        {
+            "name": "Cinemark Tinseltown 290 and XD",
+            "url": "https://www.cinemark.com/theatres/tx-houston/cinemark-tinseltown-houston-290-and-xd"
+        },
+        {
+            "name": "Cinemark Cypress and XD",
+            "url": "https://www.cinemark.com/theatres/tx-cypress/cinemark-cypress-and-xd"
+        },
+        {
+            "name": "Cinemark Memorial City",
+            "url": "https://www.cinemark.com/theatres/tx-houston/cinemark-memorial-city"
+        },
+        {
+            "name": "CUT! by Cinemark Cypress",
+            "url": "https://www.cinemark.com/theatres/tx-cypress/cut-by-cinemark-cypress-dine-in-theatre-kitchen-and-bar"
+        },
+        {
+            "name": "Cinemark 19 and XD",
+            "url": "https://www.cinemark.com/theatres/tx-katy/cinemark-19-and-xd"
+        }
+    ]
+}
