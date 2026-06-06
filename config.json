@@ -5,24 +5,39 @@
     },
     "tracked_theaters": [
         {
+            "company": "Cinemark",
             "name": "Cinemark Tinseltown 290 and XD",
             "url": "https://www.cinemark.com/theatres/tx-houston/cinemark-tinseltown-houston-290-and-xd"
         },
         {
+            "company": "Cinemark",
             "name": "Cinemark Cypress and XD",
             "url": "https://www.cinemark.com/theatres/tx-cypress/cinemark-cypress-and-xd"
         },
         {
+            "company": "Cinemark",
             "name": "Cinemark Memorial City",
             "url": "https://www.cinemark.com/theatres/tx-houston/cinemark-memorial-city"
         },
         {
+            "company": "Cinemark",
             "name": "CUT! by Cinemark Cypress",
             "url": "https://www.cinemark.com/theatres/tx-cypress/cut-by-cinemark-cypress-dine-in-theatre-kitchen-and-bar"
         },
         {
-            "name": "Cinemark 19 and XD",
-            "url": "https://www.cinemark.com/theatres/tx-katy/cinemark-19-and-xd"
+            "company": "AMC",
+            "name": "AMC Willowbrook 24",
+            "url": "https://www.amctheatres.com/movie-theatres/houston/amc-willowbrook-24"
+        },
+        {
+            "company": "AMC",
+            "name": "AMC Katy Mills 20",
+            "url": "https://www.amctheatres.com/movie-theatres/houston/amc-katy-mills-20"
+        },
+        {
+            "company": "AMC",
+            "name": "AMC First Colony 24",
+            "url": "https://www.amctheatres.com/movie-theatres/houston/amc-first-colony-24"
         }
     ]
 }
