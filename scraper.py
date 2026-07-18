@@ -3,6 +3,8 @@ import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 from io import StringIO
+import os
+from dotenv import load_dotenv
 
 def clean_date_to_iso(raw_month, raw_day, year):
     """Converts rough Wikipedia month/day data into standard YYYY-MM-DD."""
@@ -123,31 +125,60 @@ def get_live_showtimes_for_theaters(tracked_theaters):
 
     for theater in tracked_theaters:
         print(f"Extracting for: {theater['name']}...")
-        try:
-            response = requests.get(theater["url"], headers=headers, timeout=10)
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            # 1. Find all movie blocks. Based on your screenshot,
-            # each movie block has the class 'showtimeMovieBlock'
-            movie_blocks = soup.find_all('div', class_='showtimeMovieBlock')
-            
-            for block in movie_blocks:
-                # 2. Extract Title (often in a header tag within the block)
-                # You might need to adjust 'h2' or 'h3' based on the specific structure
-                title_tag = block.find('h2') or block.find('h3')
-                title = title_tag.get_text(strip=True) if title_tag else "Unknown Movie"
+        if theater['company'] == 'Cinemark':
+            try:
+                response = requests.get(theater["url"], headers=headers, timeout=10)
+                soup = BeautifulSoup(response.text, 'html.parser')
                 
-                # 3. Extract Showtimes. Look for all 'a' tags with class 'showtime-link'
-                times = [t.get_text(strip=True) for t in block.find_all('a', class_='showtime-link')]
+                # 1. Find all movie blocks. Based on your screenshot,
+                # each movie block has the class 'showtimeMovieBlock'
+                movie_blocks = soup.find_all('div', class_='showtimeMovieBlock')
                 
-                if times: # Only add if we actually found showtimes
+                for block in movie_blocks:
+                    # 2. Extract Title (often in a header tag within the block)
+                    # You might need to adjust 'h2' or 'h3' based on the specific structure
+                    title_tag = block.find('h2') or block.find('h3')
+                    title = title_tag.get_text(strip=True) if title_tag else "Unknown Movie"
+                    
+                    # 3. Extract Showtimes. Look for all 'a' tags with class 'showtime-link'
+                    times = [t.get_text(strip=True) for t in block.find_all('a', class_='showtime-link')]
+                    
+                    if times: # Only add if we actually found showtimes
+                        results.append({
+                            "theater": theater["name"],
+                            "movie": title,
+                            "showtimes": times
+                        })
+            except Exception as e:
+                print(f"Error at {theater['name']}: {e}")
+        
+        if theater['company'] == 'AMC':
+            load_dotenv()
+            response = requests.get(
+                "https://api.parse.bot/scraper/52c31c90-81d2-412e-ab12-c18bfddf9da8/get_showtimes",
+                headers={"X-API-Key": os.getenv("PARSE_API_KEY")},
+                params={
+                    "theatre": theater['name']
+                },
+            )
+
+            all_movies = response.json().get('data', {}).get('movies', [])
+            for movie in all_movies:
+                all_times = []
+                
+                for group in movie['showtime_groups']:
+                    for st in group['showtimes']:
+                        if st['availability'] == 'Available':
+                            all_times.append(st['time'])
+                
+                
+                if all_times:
                     results.append({
-                        "theater": theater["name"],
-                        "movie": title,
-                        "showtimes": times
+                        "theater": theater['name'],
+                        "movie": movie['title'],
+                        "showtimes": sorted(list(set(all_times)))
                     })
-        except Exception as e:
-            print(f"Error at {theater['name']}: {e}")
+            
             
     return results
 
