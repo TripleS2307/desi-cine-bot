@@ -27,10 +27,10 @@ To enable automated alerts, add the following environment variables to your GitH
 
 ## 🤖 Technical Stack
 
-* **Language**: Python 3.x
-* **Telegram Bot API**: Used to deliver daily showtime notifications. To get your bot set up, you will need to register a new bot with **@BotFather** on Telegram to generate your `TELEGRAM_BOT_TOKEN`.
-* **Data Parsing**: The project uses custom logic to scrape and transform raw showtime data into a nested structure for clean message formatting.
-* **GitHub Actions**: Automates the daily execution of the scraper.
+*   **Language**: [Python 3.x](https://www.python.org/)
+*   **Telegram Bot API**: Used to deliver daily showtime notifications. For more details on the API, refer to the [official Telegram Bot API documentation](https://core.telegram.org/bots/api). To get your bot set up, you will need to register a new bot with **@BotFather** on Telegram to generate your `TELEGRAM_BOT_TOKEN`.
+*   **Data Parsing**: The project uses custom logic to scrape and transform raw showtime data into a nested structure for clean message formatting.
+*   **GitHub Actions**: Automates the daily execution of the scraper.
 
 ## 🔧 Customizing Languages
 
