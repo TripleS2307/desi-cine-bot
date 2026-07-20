@@ -1,0 +1,32 @@
+name: Run Daily Movie Notifier
+
+on:
+  schedule:
+    # 15:00 UTC = 10:00 AM CDT
+    - cron: '0 15 * * *'
+  # Allows you to trigger the workflow manually from the Actions tab for testing
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip' # Speeds up daily runs by caching installed dependencies
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Notifier Script
+        env:
+          PARSE_API_KEY: ${{ secrets.PARSE_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py
