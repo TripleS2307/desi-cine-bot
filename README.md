@@ -1,5 +1,7 @@
 # Desi Cine Bot 🎬
 
+[![Run Daily Movie Notifier](https://github.com/Triples2307/desi-cine-bot/actions/workflows/movie-notifier.yml/badge.svg)](https://github.com/Triples2307/desi-cine-bot/actions/workflows/movie-notifier.yml)
+
 A daily notification bot that tracks local movie schedules, filters for Indian cinema, and alerts you with direct ticket links.
 
 <div style="margin-bottom: 20px;"></div>
@@ -18,6 +20,7 @@ To enable automated alerts, add the following environment variables to your GitH
 
 * `TELEGRAM_BOT_TOKEN`: Your bot's API token obtained from @BotFather.
 * `TELEGRAM_CHAT_ID`: The ID of the chat where you want to receive notifications.
+* `PARSE_API_KEY`: The API key required to authenticate requests to the movie data scraping service.
 
 ## ⚙️ How It Works
 
