@@ -2,8 +2,7 @@
 
 [![Run Daily Movie Notifier](https://github.com/Triples2307/desi-cine-bot/actions/workflows/movie-notifier.yml/badge.svg)](https://github.com/Triples2307/desi-cine-bot/actions/workflows/movie-notifier.yml)
 
-A daily notification bot that tracks local movie schedules, filters for Indian cinema, and alerts you with direct ticket links.
-
+A daily notification bot that tracks local movie schedules, pre-configured for Tamil cinema with support for other languages, and alerts you with showtimes.
 
 ## 🛠 Setup & Configuration
 
