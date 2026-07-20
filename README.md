@@ -15,7 +15,7 @@ To enable automated alerts, add the following environment variables to your GitH
 
 ## ⚙️ How It Works
 
-1. **Fetch**: The bot runs on a daily schedule and gathers showtimes from your configured theaters.
+1. **Fetch**: The bot runs on a daily schedule and queries the Parse Bot scraper API to gather local movie schedules for your configured theaters.
 2. **Filter**: It scans the results for your target languages (default: **Tamil**).
 3. **Notify**: If matches are found, it structures the data and sends a formatted message to your Telegram bot.
 
@@ -23,7 +23,7 @@ To enable automated alerts, add the following environment variables to your GitH
 
 *   **Language**: [Python 3.x](https://www.python.org/)
 *   **Telegram Bot API**: Used to deliver daily showtime notifications. For more details on the API, refer to the [official Telegram Bot API documentation](https://core.telegram.org/bots/api). To get your bot set up, you will need to register a new bot with **@BotFather** on Telegram to generate your `TELEGRAM_BOT_TOKEN`.
-*   **Data Parsing**: The project uses custom logic to scrape and transform raw showtime data into a nested structure for clean message formatting.
+*   **Data Retrieval**: The project integrates with [Parse Bot](https://parse.bot/) to fetch raw showtime data, which is then processed through custom logic to format the alerts sent to your Telegram bot.
 *   **GitHub Actions**: Automates the daily execution of the scraper.
 
 ## 🔧 Customizing Languages
