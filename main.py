@@ -26,9 +26,10 @@ def main():
     today = datetime.now().strftime("%A %B %d, %Y")
     tamil_movies = [m for m in raw_showtimes if "Tamil" in m.get('language', '')]
 
-    # 2. Logic to notify or report empty
+    # 2. Logic to report empty
     if not tamil_movies:
-        send_telegram_message(f"No Tamil movies found for {today}.") 
+        print("No tamil movies found for today. Skipping notitification")
+        return
     else:
         # 3. Use your transformation logic
         grouped_data = transform_data(tamil_movies)
