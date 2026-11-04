@@ -4,6 +4,19 @@ from dotenv import load_dotenv
 from collections import defaultdict
 from datetime import datetime
 
+load_dotenv()
+
+SCRAPERS = {
+    "Cinemark": {
+        "url": "https://api.parse.bot/scraper/419c732a-574b-40b8-a153-54dce7810331/get_showtimes",
+        "param": "theater_name",
+    },
+    "AMC": {
+        "url": "https://api.parse.bot/scraper/52c31c90-81d2-412e-ab12-c18bfddf9da8/get_showtimes",
+        "param": "theatre",
+    },
+}
+
 def clean_date_to_iso(raw_month, raw_day, year):
     """Converts rough Wikipedia month/day data into standard YYYY-MM-DD."""
     month_map = {
@@ -41,69 +54,68 @@ def extract_language_from_text(text):
     if "korean" in text: return "Korean"
     return "English" # Default
 
-def get_live_showtimes_for_theaters(tracked_theaters):
-    results = []    
-    
-    for theater in tracked_theaters:
-        load_dotenv()
-        
-        if theater['company'] == 'Cinemark':
-            response = requests.get(
-                "https://api.parse.bot/scraper/419c732a-574b-40b8-a153-54dce7810331/get_showtimes",
-                headers={"X-API-Key": os.getenv("PARSE_API_KEY")},
-                params={
-                    "theater_name": theater['name']
-                },
-            )
-            data = response.json()
-            raw_showtimes = data.get('data', {}).get('showtimes', [])
-            
-            grouped_movies = defaultdict(list)
-            for entry in raw_showtimes:
-                movie_name = entry['movieName']
-                dt = datetime.fromisoformat(entry['sessionDateTime'])
-                time_str = dt.strftime("%I:%M %p")
-                
-                grouped_movies[movie_name].append(time_str)
+def fetch_json(url, params):
+    response = requests.get(
+        url,
+        headers={"X-API-Key": os.getenv("PARSE_API_KEY")},
+        params=params,
+        timeout=30,
+    )
+    print(f"{response.status_code} {response.headers.get('Content-Type')} <- {params}")
+    if response.status_code != 200:
+        raise RuntimeError(f"HTTP {response.status_code}: {response.text[:300]}")
+    try:
+        return response.json()
+    except ValueError:
+        raise RuntimeError(f"Non-JSON body: {response.text[:300]}")
 
-            for movie_title, all_times in grouped_movies.items():
 
-                results.append({
-                    "theater": theater['name'],
-                    "movie": movie_title,
-                    "language": extract_language_from_text(movie_title),
-                    "showtimes": sorted(list(set(all_times)))
-                })
-                    
-    
-        if theater['company'] == 'AMC':
-            response = requests.get(
-                "https://api.parse.bot/scraper/52c31c90-81d2-412e-ab12-c18bfddf9da8/get_showtimes",
-                headers={"X-API-Key": os.getenv("PARSE_API_KEY")},
-                params={
-                    "theatre": theater['name']
-                },
-            )
+def parse_cinemark(data, theater):
+    grouped = defaultdict(list)
+    for entry in data.get("data", {}).get("showtimes", []):
+        dt = datetime.fromisoformat(entry["sessionDateTime"])
+        grouped[entry["movieName"]].append(dt.strftime("%I:%M %p"))
+    return [
+        {
+            "theater": theater["name"],
+            "movie": title,
+            "language": extract_language_from_text(title),
+            "showtimes": sorted(set(times)),
+        }
+        for title, times in grouped.items()
+    ]
 
-            all_movies = response.json().get('data', {}).get('movies', [])
-            for movie in all_movies:
-                all_times = []
-                detected_language = "English"
-                
-                for group in movie['showtime_groups']:
-                    if 'language' in group and group['language']:
-                        detected_language = extract_language(group['language'])
-                    
-                    for st in group['showtimes']:
-                        if st['availability'] == 'Available':
-                            all_times.append(st['time'])
-                
-                
-                if all_times:
-                    results.append({
-                        "theater": theater['name'],
-                        "movie": movie['title'],
-                        "language": detected_language,
-                        "showtimes": sorted(list(set(all_times)))
-                    })    
+
+def parse_amc(data, theater):
+    results = []
+    for movie in data.get("data", {}).get("movies", []):
+        times, language = [], "English"
+        for group in movie.get("showtime_groups", []):
+            if group.get("language"):
+                language = extract_language(group["language"])
+            times += [st["time"] for st in group.get("showtimes", [])
+                      if st.get("availability") == "Available"]
+        if times:
+            results.append({
+                "theater": theater["name"],
+                "movie": movie["title"],
+                "language": language,
+                "showtimes": sorted(set(times)),
+            })
     return results
+
+
+PARSERS = {"Cinemark": parse_cinemark, "AMC": parse_amc}
+
+
+def get_live_showtimes_for_theaters(tracked_theaters):
+    results, errors = [], []
+    for theater in tracked_theaters:
+        company = theater["company"]
+        try:
+            scraper = SCRAPERS[company]
+            data = fetch_json(scraper["url"], {scraper["param"]: theater["name"]})
+            results += PARSERS[company](data, theater)
+        except Exception as e:
+            errors.append(f"{theater['name']} ({company}): {e}")
+    return results, errors
