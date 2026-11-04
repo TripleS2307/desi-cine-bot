@@ -1,11 +1,11 @@
 import requests
 import os
 from dotenv import load_dotenv
-from collections import defaultdict, Counter
+from collections import defaultdict
 from datetime import datetime
-
+ 
 load_dotenv()  # once, at the top of the file
-
+ 
 SCRAPERS = {
     "Cinemark": {
         "url": "https://api.parse.bot/scraper/419c732a-574b-40b8-a153-54dce7810331/get_showtimes",
@@ -16,8 +16,8 @@ SCRAPERS = {
         "param": "theatre",
     },
 }
-
-
+ 
+ 
 def clean_date_to_iso(raw_month, raw_day, year):
     """Converts rough Wikipedia month/day data into standard YYYY-MM-DD."""
     month_map = {
@@ -25,26 +25,26 @@ def clean_date_to_iso(raw_month, raw_day, year):
         'may': '05', 'jun': '06', 'jul': '07', 'aug': '08',
         'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
     }
-
+ 
     month_key = str(raw_month).lower().strip()[:3]
     mm = month_map.get(month_key)
-
+ 
     day_digits = ''.join(filter(str.isdigit, str(raw_day)))
-
+ 
     if mm and day_digits:
         return f"{year}-{mm}-{day_digits.zfill(2)}"
-
+ 
     return f"{raw_month} {raw_day}, {year}".strip()
-
-
+ 
+ 
 def extract_language(language_string):
     languages = ["Hindi", "Telugu", "Tamil", "Kannada", "Malayalam", "English", "Spanish"]
     for lang in languages:
         if lang in language_string:
             return lang
     return "English"  # Default if nothing else is found
-
-
+ 
+ 
 def extract_language_from_text(text):
     text = text.lower()
     if "spanish" in text: return "Spanish"
@@ -54,8 +54,8 @@ def extract_language_from_text(text):
     if "japanese" in text: return "Japanese"
     if "korean" in text: return "Korean"
     return "English"  # Default
-
-
+ 
+ 
 def fetch_json(url, params):
     response = requests.get(
         url,
@@ -65,13 +65,13 @@ def fetch_json(url, params):
     )
     print(f"{response.status_code} {response.headers.get('Content-Type')} <- {params}")
     if response.status_code != 200:
-        raise RuntimeError(f"HTTP {response.status_code}: {response.text[:300]}")
+        raise RuntimeError(f"HTTP {response.status_code}: {response.text[:120]}")
     try:
         return response.json()
     except ValueError:
-        raise RuntimeError(f"Non-JSON body: {response.text[:300]}")
-
-
+        raise RuntimeError(f"Non-JSON body: {response.text[:120]}")
+ 
+ 
 def parse_cinemark(data, theater):
     grouped = defaultdict(list)
     for entry in data.get("data", {}).get("showtimes", []):
@@ -86,8 +86,8 @@ def parse_cinemark(data, theater):
         }
         for title, times in grouped.items()
     ]
-
-
+ 
+ 
 def parse_amc(data, theater):
     results = []
     for movie in data.get("data", {}).get("movies", []):
@@ -108,11 +108,11 @@ def parse_amc(data, theater):
                 "showtimes": sorted(set(times)),
             })
     return results
-
-
+ 
+ 
 PARSERS = {"Cinemark": parse_cinemark, "AMC": parse_amc}
-
-
+ 
+ 
 def get_live_showtimes_for_theaters(tracked_theaters):
     results, errors = [], []
     for theater in tracked_theaters:
@@ -126,15 +126,8 @@ def get_live_showtimes_for_theaters(tracked_theaters):
             results += theater_results
         except Exception as e:
             errors.append(f"{theater['name']} ({company}): {e}")
-
-    # --- Temporary debug output: delete once you've confirmed detection works ---
-    print(f"Total entries: {len(results)}")
-    for theater in tracked_theaters:
-        n = [r for r in results if r["theater"] == theater["name"]]
-        print(f"  {theater['name']}: {len(n)} movies")
-    print("Languages detected:", Counter(r["language"] for r in results))
-    for r in results:
-        print(f"  [{r['language']}] {r['movie']} @ {r['theater']}")
-    # ---------------------------------------------------------------------------
-
+            if "HTTP 402" in str(e):
+                errors.append("Credits exhausted, skipping remaining theaters.")
+                break
+ 
     return results, errors
