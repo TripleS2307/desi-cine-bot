@@ -1,10 +1,10 @@
 import requests
 import os
 from dotenv import load_dotenv
-from collections import defaultdict
+from collections import defaultdict, Counter
 from datetime import datetime
 
-load_dotenv()
+load_dotenv()  # once, at the top of the file
 
 SCRAPERS = {
     "Cinemark": {
@@ -17,6 +17,7 @@ SCRAPERS = {
     },
 }
 
+
 def clean_date_to_iso(raw_month, raw_day, year):
     """Converts rough Wikipedia month/day data into standard YYYY-MM-DD."""
     month_map = {
@@ -24,25 +25,25 @@ def clean_date_to_iso(raw_month, raw_day, year):
         'may': '05', 'jun': '06', 'jul': '07', 'aug': '08',
         'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
     }
-    
+
     month_key = str(raw_month).lower().strip()[:3]
     mm = month_map.get(month_key)
-    
+
     day_digits = ''.join(filter(str.isdigit, str(raw_day)))
-    
+
     if mm and day_digits:
         return f"{year}-{mm}-{day_digits.zfill(2)}"
-    
+
     return f"{raw_month} {raw_day}, {year}".strip()
 
 
 def extract_language(language_string):
-    # Mapping for easy cleaning
     languages = ["Hindi", "Telugu", "Tamil", "Kannada", "Malayalam", "English", "Spanish"]
     for lang in languages:
         if lang in language_string:
             return lang
-    return "English" # Default if nothing else is found
+    return "English"  # Default if nothing else is found
+
 
 def extract_language_from_text(text):
     text = text.lower()
@@ -52,7 +53,8 @@ def extract_language_from_text(text):
     if "tamil" in text: return "Tamil"
     if "japanese" in text: return "Japanese"
     if "korean" in text: return "Korean"
-    return "English" # Default
+    return "English"  # Default
+
 
 def fetch_json(url, params):
     response = requests.get(
@@ -93,8 +95,11 @@ def parse_amc(data, theater):
         for group in movie.get("showtime_groups", []):
             if group.get("language"):
                 language = extract_language(group["language"])
-            times += [st["time"] for st in group.get("showtimes", [])
-                      if st.get("availability") == "Available"]
+            times += [
+                st["time"]
+                for st in group.get("showtimes", [])
+                if st.get("availability") == "Available"
+            ]
         if times:
             results.append({
                 "theater": theater["name"],
@@ -115,7 +120,21 @@ def get_live_showtimes_for_theaters(tracked_theaters):
         try:
             scraper = SCRAPERS[company]
             data = fetch_json(scraper["url"], {scraper["param"]: theater["name"]})
-            results += PARSERS[company](data, theater)
+            theater_results = PARSERS[company](data, theater)
+            if not theater_results:
+                raise RuntimeError("Scraper returned 0 movies (empty data or name mismatch)")
+            results += theater_results
         except Exception as e:
             errors.append(f"{theater['name']} ({company}): {e}")
+
+    # --- Temporary debug output: delete once you've confirmed detection works ---
+    print(f"Total entries: {len(results)}")
+    for theater in tracked_theaters:
+        n = [r for r in results if r["theater"] == theater["name"]]
+        print(f"  {theater['name']}: {len(n)} movies")
+    print("Languages detected:", Counter(r["language"] for r in results))
+    for r in results:
+        print(f"  [{r['language']}] {r['movie']} @ {r['theater']}")
+    # ---------------------------------------------------------------------------
+
     return results, errors
