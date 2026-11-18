@@ -28,7 +28,7 @@ def format_movie_message(showtime_data):
             
     return message
 
-def send_telegram_message(text):
+def send_telegram_message(text, parse_mode="Markdown"):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     payload = {
         "chat_id": CHAT_ID,
