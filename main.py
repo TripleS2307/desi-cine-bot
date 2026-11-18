@@ -34,9 +34,15 @@ def main():
         final_message = format_movie_message(grouped_data)
         send_telegram_message(final_message)
 
-    # Make the workflow badge go red if anything failed
-    if errors:
+    # Filter out empty movie warnings so they don't trigger a build failure
+    real_errors = [e for e in errors if "Scraper returned 0 movies" not in e]
+    
+    if real_errors:
+        print(f"Workflow failing due to {len(real_errors)} real errors.")
         sys.exit(1)
+    else:
+        print("All checks passed cleanly (ignoring empty theater schedules).")
+        sys.exit(0)
 
 
 if __name__ == "__main__":
