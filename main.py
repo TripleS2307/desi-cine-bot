@@ -2,6 +2,7 @@ import json
 from scraper import get_live_showtimes_for_theaters
 from notifier import format_movie_message, send_telegram_message
 from datetime import datetime
+import sys
 
 def transform_data(raw_data):
     """Pivots the flat list of dictionaries into a nested {movie: {theater: [times]}} structure."""
