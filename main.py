@@ -25,12 +25,6 @@ def main():
 
     raw_showtimes, errors = get_live_showtimes_for_theaters(config["tracked_theaters"])
 
-    # Alert yourself about scraper failures, even if some theaters worked
-    if errors:
-        error_message = "⚠️ Desi Cine Bot scraper errors:\n" + "\n".join(errors)
-        print(error_message)
-        send_telegram_message(error_message)
-
     tamil_movies = [m for m in raw_showtimes if "Tamil" in m.get("language", "")]
 
     if not tamil_movies:
