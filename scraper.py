@@ -12,7 +12,7 @@ SCRAPERS = {
         "param": "theater_name",
     },
     "AMC": {
-        "url": "https://api.parse.bot/scraper/52c31c90-81d2-412e-ab12-c18bfddf9da8/get_showtimes",
+        "url": "https://api.parse.bot/scraper/c8a1a3fe-8706-4c8d-980e-a3a3f4de0bbb/get_showtimes",
         "param": "theatre",
     },
 }
