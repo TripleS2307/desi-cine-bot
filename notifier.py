@@ -33,8 +33,9 @@ def send_telegram_message(text):
     payload = {
         "chat_id": CHAT_ID,
         "text": text,
-        "parse_mode": "Markdown"
     }
+    if parse_mode:
+        payload["parse_mode"] = parse_mode
     try:
         response = requests.post(url, data=payload)
         response.raise_for_status() # Raises an error for bad HTTP codes
